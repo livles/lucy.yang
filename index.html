@@ -1,37 +1,53 @@
 <!DOCTYPE html>
-<html>
-	<head>
-		<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/livles/website/html-data/styles.css">
-		<title>Lucy's Personal Webpage</title>
-	</head>
-	<body>
-		<h1>Lucy Yang</h1>
-		<h2 id="slogan">Click the Light Bulb to turn on the Light!</h2>
-		<img id="light_bulb" onclick="changeImage()" src="https://raw.githubusercontent.com/livles/art/refs/heads/main/light_bulb_off.png"width=200px >
-		<a href="https://github.com/livles" title="Lucy Yang's Github Page"><br>Link to my Github.</a>
-		<p>Recommendations<br>
-		<a href="leisure/books.html" target="_parent">My Book Recommendations</a>
-		</p>
-								
-	<script>
-		function changeImage() {
-			var image = document.getElementById("light_bulb");
-			if (image.src.match("bulb_on")) {
-				var shut_down = new Audio('https://cdn.freesound.org/previews/467/467109_65641-lq.mp3');
-				shut_down.play();
-				image.src = "https://raw.githubusercontent.com/livles/art/refs/heads/main/light_bulb_off.png";
-				document.body.style.backgroundImage = 'url("https://images.pexels.com/photos/9631398/pexels-photo-9631398.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2")';
-				document.body.style.color = "white";
-				document.getElementById("slogan").innerHTML = "Click the Light Bulb to turn on the Light!";
-			} else {
-				var boot_up = new Audio('https://cdn.freesound.org/previews/625/625716_12946258-lq.mp3');
-				boot_up.play();
-				image.src ="https://raw.githubusercontent.com/livles/art/refs/heads/main/light_bulb_on.png";
-				document.body.style.backgroundImage = 'url("https://images.pexels.com/photos/28519052/pexels-photo-28519052/free-photo-of-vollmond-im-klaren-blauen-tageshimmel.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2")';
-				document.getElementById("slogan").innerHTML = "Creativity thrives in uncertainty."
-				document.body.style.color = "pink"
-			}
-		}
-	</script>
-	</body>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://cdn.skypack.dev https://cdn.jsdelivr.net" />
+
+        <link rel="stylesheet" href="room.css">
+    </head>
+    <body>
+        <div class="intro modal">
+            <p>
+                For optimal experience use PC.
+              <br>
+                <button class="exit intro" id="enter">Enter room</button>
+                Sound Effect by <a href="https://pixabay.com/users/u_797hwfzwe6-45392866/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=231719">u_797hwfzwe6</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=231719">Pixabay</a>
+                Music by <a href="https://pixabay.com/users/ada79452-28555158/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=202971">Ada79452</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=202971">Pixabay</a>
+                Sound Effect by <a href="https://pixabay.com/users/soundreality-31074404/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=312648">Jurij</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=312648">Pixabay</a>
+                Music by <a href="https://pixabay.com/users/top-flow-28521292/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=324895">Top-Flow</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=324895">Pixabay</a>
+            Music by <a href="https://pixabay.com/users/et11lx-21708189/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=247346">ET11LX</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=247346">Pixabay</a>            </p>
+            <a href="https://commons.wikimedia.org/wiki/File:BlankMap-World.svg">Canuckguy (talk) and many others (see File history)</a>, Public domain, via Wikimedia Commons
+        </div>
+        <div class="about modal">
+            I am currently a Bachelor's computer science student in Munich.
+            <button class="exit modal">x</button>
+        </div>
+        <div class="games modal">These are my game projects...
+            <button class="exit modal">x</button>
+        </div>
+        <div class="nlp modal">This is a project in the NLP field - interlinear gloss generation
+            <button class="exit modal">x</button>
+        </div>
+        <div class="help modal">Drag mouse to move angle, Ctrl+drag Mouse to pan <br>
+            Click on phone, game controller, book or map to find out more.
+            Change between dark and light by clicking the light switch button. 
+            Disable music by clicking on the speaker.
+            Click on pc for help
+            <button class="exit modal">x</button>
+        </div>
+        <div class="menu buttons">
+            <button class="mute">sound</button>
+            <button class="lightswitch">theme</button>
+            <button class="help">help</button>
+        </div>
+
+        <div id="experience">
+            <canvas id="experience-canvas"> </canvas>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
+        <script type="module" src="room.js">
+        </script>
+    </body>
 </html>

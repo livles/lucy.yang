@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/livles/website/html-data/styles.css">
+		<title>Lucy's Personal Webpage</title>
+	</head>
+	<body>
+		<h1>Lucy Yang</h1>
+		<h2 id="slogan">Click the Light Bulb to turn on the Light!</h2>
+		<img id="light_bulb" onclick="changeImage()" src="https://raw.githubusercontent.com/livles/art/refs/heads/main/light_bulb_off.png"width=200px >
+		<a href="https://github.com/livles" title="Lucy Yang's Github Page"><br>Link to my Github.</a>
+		<p>Recommendations<br>
+		<a href="leisure/books.html" target="_parent">My Book Recommendations</a>
+		</p>
+								
+	<script>
+		function changeImage() {
+			var image = document.getElementById("light_bulb");
+			if (image.src.match("bulb_on")) {
+				var shut_down = new Audio('https://cdn.freesound.org/previews/467/467109_65641-lq.mp3');
+				shut_down.play();
+				image.src = "https://raw.githubusercontent.com/livles/art/refs/heads/main/light_bulb_off.png";
+				document.body.style.backgroundImage = 'url("https://images.pexels.com/photos/9631398/pexels-photo-9631398.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2")';
+				document.body.style.color = "white";
+				document.getElementById("slogan").innerHTML = "Click the Light Bulb to turn on the Light!";
+			} else {
+				var boot_up = new Audio('https://cdn.freesound.org/previews/625/625716_12946258-lq.mp3');
+				boot_up.play();
+				image.src ="https://raw.githubusercontent.com/livles/art/refs/heads/main/light_bulb_on.png";
+				document.body.style.backgroundImage = 'url("https://images.pexels.com/photos/28519052/pexels-photo-28519052/free-photo-of-vollmond-im-klaren-blauen-tageshimmel.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2")';
+				document.getElementById("slogan").innerHTML = "Creativity thrives in uncertainty."
+				document.body.style.color = "pink"
+			}
+		}
+	</script>
+	</body>
+</html>

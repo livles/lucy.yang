@@ -1,0 +1,61 @@
+* {
+    font-family: 'Helvetica';
+    display: inline;
+}
+#experience-canvas {
+    position:absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    overflow: hidden;
+}
+
+
+
+.modal {
+    position: absolute;
+    top: 0%;
+    /* left: 50%; */
+    right: 0px;
+    /* transform: translate(-50%, -50%); */
+    font-size: 32px;
+    color: aliceblue;
+    z-index: 1;
+    background-color: #000000;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    margin-left: 50%;
+    margin-right: 0;
+    display: none;
+    width: 50%;
+    overflow: hidden;
+}
+
+.intro.modal{
+    margin: 0;
+    width:  100%;
+    height: 100%;
+    z-index: 2;
+    font-size: 32px;
+
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+
+}
+.buttons.menu {
+    position: absolute;
+    top: 0%;
+    right: 0;
+    justify-content: right;
+    align-items: flex-end;
+    display: contents;
+}
+
+button {
+    cursor: pointer;
+    display: inline;
+}

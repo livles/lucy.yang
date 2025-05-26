@@ -160,11 +160,6 @@ function startHoverAnimation(object) {
             ease: "back.out(1.8)"
         });
     } else if ( object.name.includes ( "Bayern" )) {
-        gsap.to(object.scale, {
-            duration: duration,
-            x: object.userData.initialScale.x* 2, y: object.userData.initialScale.y * 2, z: object.userData.initialScale *2 ,
-            ease: "back.out(1.8)"
-        });
         gsap.to(object.position, {
             duration: duration * 2,
             z: object.userData.initialPosition.z + .15,

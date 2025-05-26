@@ -24,8 +24,8 @@ const sounds = {
     night: new Audio ( "./sounds/chinese_drums.mp3" ),
     // day: new Audio ( "./sounds/classical_chinese_music.mp3" ),
     // day: new Audio ( "chinese-ancient-style-dizi-melody-etlx-solo-247346.mp3" ),
-    // day: new Audio ( "peace-of-mind-254203.mp3" ),
-    day: new Audio ("hoi-an-ancient-charm-147064.mp3"),
+    day: new Audio ( "peace-of-mind-254203.mp3" ),
+    // day: new Audio ("hoi-an-ancient-charm-147064.mp3"),
 
     hover: new Audio ( "./sounds/pop.mp3" ) 
 }
@@ -161,11 +161,11 @@ function startHoverAnimation(object) {
             ease: "back.out(1.8)"
         });
     } else if ( object.name.includes ( "Bayern" )) {
-        // gsap.to(object.scale, {
-        //     duration: duration,
-        //     x: object.userData.initialScale.x* 2, y: object.userData.initialScale.y * 2, z: object.userData.initialScale *2 ,
-        //     ease: "back.out(1.8)"
-        // });
+        gsap.to(object.scale, {
+            duration: duration,
+            x: object.userData.initialScale.x* 2, y: object.userData.initialScale.y * 2, z: object.userData.initialScale *2 ,
+            ease: "back.out(1.8)"
+        });
         gsap.to(object.position, {
             duration: duration * 2,
             z: object.userData.initialPosition.z + .15,
@@ -183,6 +183,12 @@ function startHoverAnimation(object) {
             ease: "bounce.out"
         });
     
+     } else if (object.name.includes ( "phone" )) {
+        gsap.to(object.scale, {
+            duration: duration,
+            x:object.userData.initialScale.x * 1.8,y:object.userData.initialScale.y * 1.8,z:object.userData.initialScale.z * 1.8,
+            ease: "back.out(1.8)"
+        });
      }
     
 }
@@ -238,6 +244,12 @@ if ( ! object ) { return;}
             ease: "power3.out"
         });
     
+    } else if (object.name.includes( "phone" )) {
+        gsap.to(object.scale, {
+        duration: duration,
+            x:object.userData.initialScale.x ,y:object.userData.initialScale.y ,z:object.userData.initialScale.z ,
+         ease: "back.out(1.8)"
+        });
     }
 
  

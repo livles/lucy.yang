@@ -46,18 +46,22 @@
 
 
 }
-.buttons.menu {
-    position: absolute;
-    top: 0%;
-    right: 0;
-    justify-content: right;
-    align-items: flex-end;
-    display: contents;
-}
 
 button {
     cursor: pointer;
+    /* display: contents; */
     display: inline;
 }
+.exit.modal {
+    position: absolute;
+    z-index: 3;
+    top: 0%;
+    right: 0;
+}
 
+.buttons.menu .exit.modal{
+    position: absolute;
+    justify-content: right;
+    align-items: flex-end;
+}
 

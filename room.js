@@ -17,7 +17,9 @@ const raycastObjects = [];
 const modals = {
     about:  document.querySelector(".modal.about"),
     games:  document.querySelector(".modal.games"),
-    nlp:    document.querySelector(".modal.nlp")
+    nlp:    document.querySelector(".modal.nlp"),
+    contact: document.querySelector(".modal.contact"),
+    help: document.querySelector("modal.help")
 };
 
 const sounds = {
@@ -296,6 +298,15 @@ function setupButtons () {
         }
         mute = ! mute;
     });
+    document.querySelector (".help").addEventListener ("click", () => {
+        if (openedModal) {
+            hideModal(openedModal)
+        }
+        // TODO
+        openedModal = modals.help;
+        showModal (openedModal);
+    });
+
 
 
 
@@ -395,6 +406,9 @@ function onClick () {
             } else if ( intersectRayObject.name.includes ( "NLP" ) ) {
                 openedModal = modals.nlp;
                 showModal (openedModal);
+            } else if ( intersectRayObject.name.includes ( "phone" ) ) {
+                openedModal = modals.contact;
+                showModal ( openedModal );
             }
             
         } else {

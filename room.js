@@ -29,7 +29,7 @@ const sounds = {
     day: new Audio ( "peace-of-mind-254203.mp3" ),
     // day: new Audio ("hoi-an-ancient-charm-147064.mp3"),
 
-    hover: new Audio ( "./sounds/pop.mp3" ) 
+    hover: new Audio ( "./sounds/pop_clean.mp3" ) 
 }
 
 const background_colors = {
@@ -185,6 +185,11 @@ function startHoverAnimation(object) {
             x:object.userData.initialScale.x * 1.8,y:object.userData.initialScale.y * 1.8,z:object.userData.initialScale.z * 1.8,
             ease: "back.out(1.8)"
         });
+        gsap.to(object.rotation, {
+            duration: duration,
+            y:object.rotation.y + (Math.PI / 8) * ([-1,1][Math.floor(Math.random()*2)]),
+            ease: "back.out(1.8)"
+        });
      }
     
 }
@@ -246,6 +251,11 @@ if ( ! object ) { return;}
             x:object.userData.initialScale.x ,y:object.userData.initialScale.y ,z:object.userData.initialScale.z ,
          ease: "back.out(1.8)"
         });
+        // gsap.to(object.rotation, {
+        // duration: duration,
+        //     x:object.userData.initialRotation.x ,y: object.userData.initialRotation.y ,z:object.userData.initialRotation.z ,
+        //  ease: "back.out(1.8)"
+        // });
     }
 
  
@@ -446,7 +456,7 @@ function showModal ( modal ) {
     if (modal) {
  
         openedModal = modal;
-        modal.style.display = "flex";
+        modal.style.display = "block";
         onWindowResize();    
         // onPointer ("pointermove");
     }

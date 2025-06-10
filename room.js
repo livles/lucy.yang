@@ -120,6 +120,8 @@ async function load3DModel() {
             }
         }
     )
+    setupButtons();
+    intro_button.textContent = "Enter Room";
 }
 
 
@@ -283,7 +285,7 @@ function endClickAnimation (object) {
          });
     }
 }
-
+let intro_button;
 function setupButtons () {
     
     document.querySelectorAll( ".exit" )
@@ -297,7 +299,7 @@ function setupButtons () {
         })
     )
 
-    const intro_button = document.querySelector ( ".exit.intro" );
+    intro_button = document.querySelector( ".exit.intro" );
     intro_button.addEventListener ( "click" , () => {backgroundMusic.play()});
 
     document.querySelector (".mute").addEventListener ("click", () => {
@@ -316,7 +318,6 @@ function setupButtons () {
             if (openedModal) {
                 hideModal(openedModal)
             }
-            // TODO
             openedModal = modals.help;
             console.log(openedModal)
             showModal (openedModal);
@@ -325,7 +326,6 @@ function setupButtons () {
     document.querySelector ("button.theme").addEventListener ("click", () => {
         changeTheme();
     });
-
 
 
 }
@@ -492,7 +492,6 @@ function hideModal ( modal ) {
     setupScene();
     load3DModel();
     setupLight();
-    setupButtons ();
     setupControls();
     setupTouch ();
     controls.listenToKeyEvents (renderer.domElement);

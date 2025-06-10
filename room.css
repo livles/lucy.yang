@@ -16,6 +16,8 @@ a {
 }
 
 .attributions {
+    position: absolute;
+    bottom: 0;
     font-size: 50%;
 }
 .modal {
@@ -45,19 +47,19 @@ h1 {
 }
 
 .intro.modal{
-    margin: 0;
+    margin: 0%;
     width:  100%;
     height: 100%;
     z-index: 2;
     font-size: 32px;
-    display: block;
-
-    /* text-align: center; */
-    /* justify-content: center; */
-    /* align-items: center; */
-
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  
 
 }
+
 
 button {
     cursor: pointer;

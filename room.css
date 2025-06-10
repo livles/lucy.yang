@@ -38,7 +38,11 @@ a {
     overflow: hidden;
 }
 
-
+h1 {
+    font-size: 150%;
+    font-weight:bold;
+    color: hotpink;
+}
 
 .intro.modal{
     margin: 0;
@@ -59,18 +63,24 @@ button {
     cursor: pointer;
     /* display: contents; */
     font-size: 200%;
-    display: inline;
+    /* display: inline; */
+    z-index: 4;
 }
-.exit.modal {
-    position: absolute;
-    z-index: 3;
-    top: 0%;
+button:hover { 
+    color: hotpink;
+}
+button.exit {
+    font-size: 100%;
+    /* border-radius: 50%; */
+    display: inline;
+    float: right;
     right: 0;
+    top: 0;
+}
+button.exit.intro {
+    float: none;
 }
 
-.buttons.menu .exit.modal{
-    position: absolute;
-    justify-content: right;
-    align-items: flex-end;
-}
+
+
 

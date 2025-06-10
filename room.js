@@ -19,7 +19,7 @@ const modals = {
     games:  document.querySelector(".modal.games"),
     nlp:    document.querySelector(".modal.nlp"),
     contact: document.querySelector(".modal.contact"),
-    help: document.querySelector("modal.help")
+    help: document.querySelector(".modal.help")
 };
 
 const sounds = {
@@ -105,8 +105,7 @@ async function load3DModel() {
 
 
     let children  = scene.children[6].children;
-    console.log(children)
-    children.forEach((element) => {
+     children.forEach((element) => {
         if ( element.name.includes("Raycaster") ) {
            
             if (element.name.includes("NLP")) {
@@ -117,12 +116,10 @@ async function load3DModel() {
             element.userData.initialRotation = new THREE.Vector3().copy(element.rotation);
             element.userData.initialPosition= new THREE.Vector3().copy(element.position);
             element.userData.initialScale = new THREE.Vector3().copy(element.scale);
-            console.log(element);
             raycastObjects.push(element)
             }
         }
     )
-    console.log("raycastObjects",raycastObjects)
 }
 
 
@@ -274,6 +271,9 @@ function startClickAnimation (object) {
 }
 
 function endClickAnimation (object) {
+    if (!object) {
+        return;
+    }
     if (object.name.includes ( 'switch' ) ){
         switchButton = object.children[0];
         gsap.to(switchButton.rotation, {
@@ -308,15 +308,23 @@ function setupButtons () {
         }
         mute = ! mute;
     });
-    document.querySelector (".help").addEventListener ("click", () => {
-        if (openedModal) {
-            hideModal(openedModal)
-        }
-        // TODO
-        openedModal = modals.help;
-        showModal (openedModal);
-    });
+    document.querySelector ("button.help").addEventListener ("click", () => {
 
+        if (openedModal == modals.help) {
+            hideModal(openedModal)
+        }else {
+            if (openedModal) {
+                hideModal(openedModal)
+            }
+            // TODO
+            openedModal = modals.help;
+            console.log(openedModal)
+            showModal (openedModal);
+        }
+    });
+    document.querySelector ("button.theme").addEventListener ("click", () => {
+        changeTheme();
+    });
 
 
 
@@ -366,8 +374,6 @@ function onPointer( event ) {
     }
     
     intersects = raycaster.intersectObjects( raycastObjects );
-    
-    console.log(raycastObjects)
 
     if ( intersects.length && intersects[0].object.name.includes("Raycaster")  ) {
             document.body.style.cursor = "pointer";
@@ -426,21 +432,24 @@ function onClick () {
             clickedObject = null;
         }
         if (intersectRayObject.name.includes ( "switch" ) ) {
-            if (lighton) {
-                
-                lighton = false;
-                renderer.toneMappingExposure = Math.pow(2, exposureLow);
-                scene.background = background_colors.night; 
-                handleMusic ();
-                startClickAnimation(intersectRayObject);
-            } else {
-                lighton = true;
-                renderer.toneMappingExposure = Math.pow(2,exposureHigh);
-                scene.background = background_colors.day;
-                handleMusic();
-                endClickAnimation (intersectRayObject);
-            }
+            changeTheme();
+            
         }
+    }
+}
+function changeTheme() {
+    if (lighton) {        
+        lighton = false;
+        renderer.toneMappingExposure = Math.pow(2, exposureLow);
+        scene.background = background_colors.night; 
+        handleMusic ();
+        startClickAnimation(intersectRayObject);
+    } else {
+        lighton = true;
+        renderer.toneMappingExposure = Math.pow(2,exposureHigh);
+        scene.background = background_colors.day;
+        handleMusic();
+        endClickAnimation (intersectRayObject);
     }
 }
 
@@ -454,7 +463,7 @@ function handleMusic () {
 
 function showModal ( modal ) {
     if (modal) {
- 
+        console.log(modal)
         openedModal = modal;
         modal.style.display = "block";
         onWindowResize();    

@@ -38,6 +38,7 @@ a {
     display: none;
     width: 50%;
     overflow: hidden;
+    flex-direction: column;
 }
 
 h1 {
@@ -74,8 +75,11 @@ button:hover {
 button.exit {
     font-size: 100%;
     /* border-radius: 50%; */
-    display: inline;
-    float: right;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: right;
+    align-content: end;
     right: 0;
     top: 0;
 }

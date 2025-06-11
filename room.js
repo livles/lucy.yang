@@ -7,6 +7,7 @@ const renderer = new THREE.WebGLRenderer({canvas: canvas,alpha:false, antialias:
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let lighton = true;
+let pop;    
 const exposureHigh = -3;
 const exposureLow = -5;
 let camera,scene,controls, intersects, intersectRayObject;
@@ -23,6 +24,10 @@ const modals = {
     help: document.querySelector(".modal.help"),
     portfolio: document.querySelector(".modal.portfolio")
 };
+
+const raycastObjectsDict = {
+    help: raycastObjects[0]
+}
 
 const sounds = {
     night: new Audio ( "./sounds/chinese_drums.mp3" ),
@@ -124,6 +129,7 @@ async function load3DModel() {
         }
     )
     setupButtons();
+    console.log(raycastObjects)
     intro_button.textContent = "Enter Room";
 }
 
@@ -168,14 +174,12 @@ function startHoverAnimation(object) {
             },       
         });
     } else if ( object.name.includes ( "switch" ) ) {
-        if ( !lighton) { return; }
         gsap.to(object.scale, {
             duration: duration,
             x:object.userData.initialScale.x * 1.8,y:object.userData.initialScale.y * 1.8,z:object.userData.initialScale.z * 1.8,
             ease: "back.out(1.8)",
- onComplete: () => { object.userData.expanded = true;
-                expandedObjects.push(object)
-            },        
+             onComplete: () => { object.userData.expanded = true;
+            },
         });
     } else if ( object.name.includes ( "Bayern" )) {
         gsap.to(object.position, {
@@ -271,12 +275,11 @@ function endHoverAnimation ( object ) {
         });   
 
     } else if ( object.name.includes ( "switch" ) ) {
-        if ( !lighton) { return; }
         gsap.to(object.scale, {
             duration: duration,
             x:object.userData.initialScale.x ,y:object.userData.initialScale.y ,z:object.userData.initialScale.z ,
             ease: "back.out(1.8)",
-           onComplete: () => {object.userData.shrinked = true;},
+            onComplete: () => {object.userData.shrinked = true;},
         });
     } else if ( object.name.includes ( "Bayern" )) {
         gsap.to(object.scale, {
@@ -394,7 +397,7 @@ function setupButtons () {
             }
             endHoverAnimation(clickedObject)
             endClickAnimation(clickedObject)
-                        clickedObject = null;
+            clickedObject = null;
 
         })
     )
@@ -413,20 +416,26 @@ function setupButtons () {
     document.querySelector ("button.help").addEventListener ("click", () => {
         if (openedModal == modals.help) {
             hideModal(modals.help)
+            endClickAnimation(raycastObjectsDict.help)
+            endHoverAnimation(raycastObjectsDict.help)
             clickedObject = null;
         }else {
-            if (openedModal) {
-                hideModal(openedModal)
-                endClickAnimation(clickedObject)
-                clickedObject = null;
-            }
             while( expandedObjects.length ) {
 
                 (pop = expandedObjects.pop());
+                if (pop != clickedObject) {
                     endHoverAnimation(pop)
+                }
+            }
+            if (openedModal) {
+                hideModal(openedModal)
+                endClickAnimation(clickedObject)
             }
                 openedModal = modals.help;
                 showModal (openedModal);
+                clickedObject = raycastObjects.find(object => object.name.includes("monitor"))
+                startHoverAnimation(clickedObject)
+                startClickAnimation(clickedObject)
         }
     });
     document.querySelector ("button.theme").addEventListener ("click", () => {
@@ -492,17 +501,22 @@ function onPointer( event ) {
         document.body.style.cursor = "default"; 
     } 
     while ( expandedObjects.length) {
-            endHoverAnimation(expandedObjects.pop())
+            pop = expandedObjects.pop() 
+            if (pop != clickedObject) {
+                endHoverAnimation(pop)
+            }
         } 
 }
 
 function onClick () {
     if ( intersectRayObject )  {
-        if ( intersectRayObject != clickedObject ) {
+        if (intersectRayObject.name.includes ( "switch" ) ) {
+            changeTheme();
+        } else if ( intersectRayObject != clickedObject ) {
             endHoverAnimation(clickedObject)
             clickedObject = intersectRayObject;
             hideModal (openedModal);
-
+            
             if ( clickedObject.name.includes ("Bayern") ) {
                 openedModal = modals.about;
             } else if ( clickedObject.name.includes ( "Controller" ) ) {
@@ -516,16 +530,14 @@ function onClick () {
             } else if ( clickedObject.name.includes ( "monitor" ) ) {
                 openedModal = modals.help;
             } 
-            showModal (openedModal );
             startClickAnimation(clickedObject)
+            showModal (openedModal );
+            
         } else {
             hideModal ( openedModal );
             endClickAnimation(clickedObject)
             endHoverAnimation(clickedObject)
             clickedObject = null;
-        }
-        if (intersectRayObject.name.includes ( "switch" ) ) {
-            changeTheme();
         }
     } 
 }
@@ -541,6 +553,8 @@ function changeTheme() {
         renderer.toneMappingExposure = Math.pow(2,exposureHigh);
         scene.background = background_colors.day;
         handleMusic();
+        endClickAnimation(intersectRayObject)
+        endHoverAnimation(intersectRayObject)
     }
 }
 

@@ -7,7 +7,6 @@ const renderer = new THREE.WebGLRenderer({canvas: canvas,alpha:false, antialias:
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let lighton = true;
-let pop;    
 const exposureHigh = -3;
 const exposureLow = -5;
 let camera,scene,controls, intersects, intersect;
@@ -16,7 +15,7 @@ let clickedObject = null, mute = false;
 const raycastObjects = [];
 const pink = 0xFF5BCF;
 let last_intersect = null;
-const modals = {
+let modals; modals ={
     about:  document.querySelector(".modal.about"),
     games:  document.querySelector(".modal.games"),
     nlp:    document.querySelector(".modal.nlp"),
@@ -27,14 +26,7 @@ const modals = {
 let duration,durationPos,durationRot,durationSca,rotateX,rotateY,rotateZ,scaleX,scaleY,scaleZ,positionX,positionY,positionZ,ease;
 let open = null
 
-const objects = {
-    help: raycastObjects.find(object=> object.name.includes("monitor")),
-    games: raycastObjects.find(object=> object.name.includes("Controller")),
-    nlp: raycastObjects.find(object=> object.name.includes("NLP")),
-    contact: raycastObjects.find(object=> object.name.includes("phone")),
-    portfolio: raycastObjects.find(object=> object.name.includes("Keyboard")),
-    switchButton: raycastObjects.find(object=> object.name.includes("switch")),
-}
+let objects ; 
 
 const sounds = {
     night: new Audio ( "./sounds/chinese_drums.mp3" ),
@@ -122,6 +114,8 @@ async function load3DModel() {
      children.forEach((element) => {
          if ( element.name.includes("Raycast") ) {
             if (element.children.length) {
+                element.children[0].userData.newScale = new THREE.Vector3(1,1,1);
+                element.children[0].userData.initialScale = new THREE.Vector3().copy(element.children[0].scale);
                 element.children[0].userData.newColor =  new THREE.Color().copy(element.children[0].material.color);
                 element.children[0].userData.initialColor = new THREE.Color().copy(element.children[0].material.color);
                 element.children[0].userData.newRotation = new THREE.Vector3(0,0,0)
@@ -129,6 +123,7 @@ async function load3DModel() {
                 element.children[0].userData.duration = 2;
             }
             if (element.name.includes("NLP")) {
+                element.children[0].userData.newScale = new THREE.Vector3(1.5,1,1);
                 element.children[0].userData.newRotation = new THREE.Vector3(0,-Math.PI * 1.3,0);
                 element.userData.newRotation = new THREE.Vector3(0,0,0);
                 element.userData.newScale = new THREE.Vector3(1.5,1.5,1.5);
@@ -181,9 +176,17 @@ async function load3DModel() {
             element.userData.initialPosition= new THREE.Vector3().copy(element.position);
             element.userData.initialScale = new THREE.Vector3().copy(element.scale);
             raycastObjects.push(element)
-            }
         }
-    )
+    }
+)
+    objects = {
+        help: raycastObjects.find(object=> object.name.includes("monitor")),
+        games: raycastObjects.find(object=> object.name.includes("Controller")),
+        nlp: raycastObjects.find(object=> object.name.includes("NLP")),
+        contact: raycastObjects.find(object=> object.name.includes("phone")),
+        portfolio: raycastObjects.find(object=> object.name.includes("Keyboard")),
+        switchButton: raycastObjects.find(object=> object.name.includes("switch")),
+    }
     setupButtons();
     intro_button.textContent = "Enter Room";
     console.log(raycastObjects)
@@ -233,24 +236,11 @@ function setupButtons () {
         mute = ! mute;
     });
     document.querySelector ("button.help").addEventListener ("click", () => {
-        if (openedModal == modals.help) {
-            hideModal(modals.help)
-            close(objects.help)
-            clickedObject = null;
-        }else {
-            closeAllExcept(objects.help)
-            if (openedModal) {
-                hideModal(openedModal)
-            }
-            openedModal = modals.help;
-            showModal (openedModal);
-            clickedObject = objects.help;
-            startHoverAnimation(clickedObject)
-            startClickAnimation(clickedObject)
-        }
+        console.log(objects.help)
+        handleClick(objects.help)
     });
     document.querySelector ("button.theme").addEventListener ("click", () => {
-        // changeTheme();
+        handleClick(objects.switchButton)
     });
 
 
@@ -437,7 +427,8 @@ function handleModalOf (object) {
 }
 
 function onClick () {
-    if (intersect) {
+    console.log(intersect)
+    if (intersect ) {
         handleClick(intersect);
     }
 }
@@ -445,6 +436,9 @@ function onClick () {
 function clickAnimation (object) {
     object.userData.closed = false;
     object.userData.opened = false;
+    if (object.name.includes("switch")) {
+        changeTheme(object)
+    }
     if (object.userData.clicked) {
         if (object.children.length){
             gsap.to (object.children[0].material.color, {
@@ -452,6 +446,13 @@ function clickAnimation (object) {
                 r: object.children[0].userData.newColor.r,
                 g: object.children[0].userData.newColor.g,
                 b: object.children[0].userData.newColor.b,
+                ease: ease,
+            });
+            gsap.to (object.children[0].scale, {
+                duration: object.children[0].userData.duration,
+                x: object.children[0].userData.initialScale.x * object.children[0].userData.newScale.x,
+                y: object.children[0].userData.initialScale.y * object.children[0].userData.newScale.y,
+                z: object.children[0].userData.initialScale.z * object.children[0].userData.newScale.z,
                 ease: ease,
             });
             gsap.to (object.children[0].rotation, {
@@ -467,7 +468,7 @@ function clickAnimation (object) {
                     else {
                         object.userData.opened = true;
                          if (object.name.includes("switch")) {
-                            // changeTheme(object)
+                            changeTheme(object)
                         }
                     }
                 }
@@ -480,6 +481,13 @@ function clickAnimation (object) {
                 r: object.children[0].userData.initialColor.r,
                 g: object.children[0].userData.initialColor.g,
                 b: object.children[0].userData.initialColor.b,
+            });
+            gsap.to (object.children[0].scale, {
+                duration: object.children[0].userData.duration,
+                x: object.children[0].userData.initialScale.x,
+                y: object.children[0].userData.initialScale.y,
+                z: object.children[0].userData.initialScale.z,
+                ease: ease,
             });
             gsap.to (object.children[0].rotation, {
                  duration: durationRot,
@@ -494,7 +502,7 @@ function clickAnimation (object) {
                     else {
                         object.userData.closed = true;
                         if (object.name.includes("switch")) {
-                            // changeTheme(object)
+                            changeTheme(object)
                         }
                     }
                 }
@@ -504,7 +512,7 @@ function clickAnimation (object) {
 }
 
 function handleClick(newClick) {
-
+    console.log(newClick)
     if (newClick.name.includes("switch")) {
         if (newClick.userData.clicked) {
             newClick.userData.clicked = false;
@@ -525,62 +533,65 @@ function handleClick(newClick) {
                 clickAnimation (newClick)
             }
         }
-    }
-    // new object clicked
-    if (open != newClick) {
-        if ( open ) {
-            open.userData.clicked = false;
-            open.userData.hover = false;
-            // handleModalOf(open);
-            if (open.userData.big) {
-                hoverAnimation (open);
-            }
-            if (open.userData.opened) {
-                clickAnimation (open)
-            }
-            open = null;
-        }
-        if (newClick)  {
-            newClick.userData.clicked = true;
-            newClick.userData.hover = true;
-            if (newClick.userData.small) {
-                hoverAnimation (newClick);
-            }
-            if (newClick.userData.closed) {
-                clickAnimation (newClick)
-            }
-            open = newClick;
-        } 
     } 
-    // close this click object
     else {
-        if (newClick) {
-            newClick.userData.clicked = false;
-            newClick.userData.hover = false; // really?
-            if (newClick.userData.big) {
-                hoverAnimation (newClick);
+
+        // new object clicked
+        if (open != newClick) {
+            if ( open ) {
+                open.userData.clicked = false;
+                open.userData.hover = false;
+                // handleModalOf(open);
+                if (open.userData.big) {
+                    hoverAnimation (open);
+                }
+                if (open.userData.opened) {
+                    clickAnimation (open)
+                }
+                open = null;
             }
-            if (newClick.userData.opened) {
-                clickAnimation (newClick)
+            if (newClick)  {
+                newClick.userData.clicked = true;
+                newClick.userData.hover = true;
+                if (newClick.userData.small) {
+                    hoverAnimation (newClick);
+                }
+                if (newClick.userData.closed) {
+                    clickAnimation (newClick)
+                }
+                open = newClick;
+            } 
+        } 
+        // close this click object
+        else {
+            if (newClick) {
+                newClick.userData.clicked = false;
+                newClick.userData.hover = false; // really?
+                if (newClick.userData.big) {
+                    hoverAnimation (newClick);
+                }
+                if (newClick.userData.opened) {
+                    clickAnimation (newClick)
+                }
+                // handleModalOf (newClick)
+                open = null;
             }
-            // handleModalOf (newClick)
-            open = null;
         }
     }
 }
 
-// function changeTheme(object) {
-//     console.log(object)
-//     if (!object.userData.clicked) {        
-//         renderer.toneMappingExposure = Math.pow(2, exposureLow);
-//         scene.background = background_colors.night; 
-//         handleMusic ();
-//     } else {
-//         renderer.toneMappingExposure = Math.pow(2,exposureHigh);
-//         scene.background = background_colors.day;
-//         handleMusic();
-//     }
-// }
+function changeTheme(object) {
+    console.log(object)
+    if (object.userData.clicked) {        
+        renderer.toneMappingExposure = Math.pow(2, exposureLow);
+        scene.background = background_colors.night; 
+        handleMusic ();
+    } else {
+        renderer.toneMappingExposure = Math.pow(2,exposureHigh);
+        scene.background = background_colors.day;
+        handleMusic();
+    }
+}
 
 function handleMusic () {
     backgroundMusic.pause();

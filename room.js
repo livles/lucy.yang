@@ -10,12 +10,12 @@ let lighton = true;
 let pop;    
 const exposureHigh = -3;
 const exposureLow = -5;
-let camera,scene,controls, intersects, intersectRayObject;
-const startHoverObjects = [], expandedObjects = [];
+let camera,scene,controls, intersects, intersect;
 let openedModal = null;
 let clickedObject = null, mute = false;
 const raycastObjects = [];
-
+const pink = 0xFF5BCF;
+let last_intersect = null;
 const modals = {
     about:  document.querySelector(".modal.about"),
     games:  document.querySelector(".modal.games"),
@@ -24,9 +24,16 @@ const modals = {
     help: document.querySelector(".modal.help"),
     portfolio: document.querySelector(".modal.portfolio")
 };
+let duration,durationPos,durationRot,durationSca,rotateX,rotateY,rotateZ,scaleX,scaleY,scaleZ,positionX,positionY,positionZ,ease;
+let open = null
 
-const raycastObjectsDict = {
-    help: raycastObjects[0]
+const objects = {
+    help: raycastObjects.find(object=> object.name.includes("monitor")),
+    games: raycastObjects.find(object=> object.name.includes("Controller")),
+    nlp: raycastObjects.find(object=> object.name.includes("NLP")),
+    contact: raycastObjects.find(object=> object.name.includes("phone")),
+    portfolio: raycastObjects.find(object=> object.name.includes("Keyboard")),
+    switchButton: raycastObjects.find(object=> object.name.includes("switch")),
 }
 
 const sounds = {
@@ -114,23 +121,72 @@ async function load3DModel() {
     let children  = scene.children[6].children;
      children.forEach((element) => {
          if ( element.name.includes("Raycast") ) {
-           
+            if (element.children.length) {
+                element.children[0].userData.newColor =  new THREE.Color().copy(element.children[0].material.color);
+                element.children[0].userData.initialColor = new THREE.Color().copy(element.children[0].material.color);
+                element.children[0].userData.newRotation = new THREE.Vector3(0,0,0)
+                element.children[0].userData.initialRotation = new THREE.Vector3().copy(element.children[0].rotation)
+                element.children[0].userData.duration = 2;
+            }
             if (element.name.includes("NLP")) {
-                element.children[0].userData.initialPosition = new THREE.Vector3().copy(element.position);
-            } if (element.name.includes("switch")) {
-                element.children[0].rotateX ( -Math.PI / 16);
+                element.children[0].userData.newRotation = new THREE.Vector3(0,-Math.PI * 1.3,0);
+                element.userData.newRotation = new THREE.Vector3(0,0,0);
+                element.userData.newScale = new THREE.Vector3(1.5,1.5,1.5);
+                element.userData.newPosition = new THREE.Vector3(0,0,0);
+                element.userData.modal = modals.nlp;
+            } else if (element.name.includes("switch")) {
+                element.children[0].rotateX(-Math.PI / 16)
+                element.children[0].userData.newRotation = new THREE.Vector3( (     Math.PI / 8),0,0);
+                element.children[0].userData.initialRotation = new THREE.Vector3( -( Math.PI / 16),0,0);
+                element.userData.newRotation = new THREE.Vector3(0,0,0);
+                element.userData.newScale = new THREE.Vector3(1.5,1.5,1.5);
+                element.userData.newPosition = new THREE.Vector3(0,0,0);
+            }  else if (element.name.includes("monitor")) {
+                element.userData.newRotation = new THREE.Vector3(0,0,0);
+                element.userData.newScale = new THREE.Vector3(1.5,1.5,1.5);
+                element.userData.newPosition = new THREE.Vector3(0,0,0);
+                element.userData.modal = modals.help;
+                element.children[0].userData.newColor = new THREE.Color(pink)
+            }  else if (element.name.includes("Controller")) {
+                element.userData.newRotation = new THREE.Vector3(Math.PI/4,0,0);
+                element.userData.newScale = new THREE.Vector3(1.5,1.5,1.5);
+                element.userData.newPosition = new THREE.Vector3(0,.15,0);
+                element.userData.modal = modals.games;    
+            }  else if (element.name.includes("phone")) {
+                element.children[0].userData.newColor = new THREE.Color(pink)
+                element.userData.newRotation = new THREE.Vector3(0,0,Math.PI / 4);
+                element.userData.newScale = new THREE.Vector3(1.5,1.5,1.5);
+                element.userData.newPosition = new THREE.Vector3(0,0,0);
+                element.userData.modal = modals.contact;  
+            } else if (element.name.includes("Keyboard")) {
+                element.userData.newRotation = new THREE.Vector3(0,0,Math.PI / 8);
+                element.userData.newScale = new THREE.Vector3(1.5,1.5,1.5);
+                element.userData.newPosition = new THREE.Vector3(0,0,0);
+                element.userData.modal = modals.portfolio;
+            } else if (element.name.includes("Bayern")) {
+                element.userData.newRotation = new THREE.Vector3(0,0,0);
+                element.userData.newScale = new THREE.Vector3(1,1,1);
+                element.userData.newPosition = new THREE.Vector3(0,0,.15);
+                element.userData.modal = modals.about;
             } 
+            element.userData.small = true;
+            element.userData.big = false;
+            element.userData.hover = false;
+            element.userData.clicked = false;
+            element.userData.open = false;
+            element.userData.closed = true;
+            element.userData.duration = 1;
+            element.userData.ease = "back.out(1.8)"
             element.userData.initialRotation = new THREE.Vector3().copy(element.rotation);
             element.userData.initialPosition= new THREE.Vector3().copy(element.position);
             element.userData.initialScale = new THREE.Vector3().copy(element.scale);
             raycastObjects.push(element)
-            element.userData.shrinked = true;
             }
         }
     )
     setupButtons();
-    console.log(raycastObjects)
     intro_button.textContent = "Enter Room";
+    console.log(raycastObjects)
 }
 
 
@@ -138,253 +194,16 @@ async function load3DModel() {
 function animate (){
     renderer.render ( scene, camera );
     controls.update();
-};
-
-const duration = 1;
-function startHoverAnimation(object) {
-    if ( ! object ) {return;}
-    if (!object.userData.shrinked) return; 
-    object.userData.shrinked = false;
-    console.log(object,startHoverObjects);
-    sounds.hover.cloneNode().play();
-    if ( object.name.includes ( "Controller" ) ) {
-
-        gsap.to(object.scale, {
-            duration: duration,
-            x:object.userData.initialScale.x * 1.8,y:object.userData.initialScale.y * 1.8,z:object.userData.initialScale.z * 1.8,
-            ease: "back.out(1.8)",
-            onComplete: () => { object.userData.expanded = true;
-                expandedObjects.push(object)
-            },
-        });
-        gsap.to(object.position, {
-            duration: duration * 2,
-            y: object.userData.initialPosition.y + .15,
-            ease: "back.out(1.8)",
-             onComplete: () => { object.userData.expanded = true;
-                expandedObjects.push(object)
-            },
-        });   
-        gsap.to(object.rotation, {
-            duration: duration * 2,
-            x: object.userData.initialRotation.x + Math.PI / 4,
-            ease: "back.out(1.8)",
- onComplete: () => { object.userData.expanded = true;
-                expandedObjects.push(object)
-            },       
-        });
-    } else if ( object.name.includes ( "switch" ) ) {
-        gsap.to(object.scale, {
-            duration: duration,
-            x:object.userData.initialScale.x * 1.8,y:object.userData.initialScale.y * 1.8,z:object.userData.initialScale.z * 1.8,
-            ease: "back.out(1.8)",
-             onComplete: () => { object.userData.expanded = true;
-            },
-        });
-    } else if ( object.name.includes ( "Bayern" )) {
-        gsap.to(object.position, {
-            duration: duration * 2,
-            z: object.userData.initialPosition.z + .15,
-            ease: "back.out(1.8)"
-        ,
- onComplete: () => { object.userData.expanded = true;
-                expandedObjects.push(object)
-            },        }); 
-    } else if ( object.name.includes ( "NLP" ) ) {
-        gsap.to(object.scale, {
-            duration: duration,
-            x:object.userData.initialScale.x * 1.8,y:object.userData.initialScale.y * 1.8,z:object.userData.initialScale.z * 1.8,
-            ease: "back.out(1.8)"
-         
-        });
-        gsap.to(object.children[0].rotation, {
-            duration: duration * 3,
-            y: object.userData.initialRotation.y - Math.PI * 8 / 6,
-            ease: "bounce.out"
-            ,
- onComplete: () => { object.userData.expanded = true;
-                expandedObjects.push(object)
-            },         
-        });
-    
-     } else if (object.name.includes ( "phone" )) {
-        gsap.to(object.scale, {
-            duration: duration,
-            x:object.userData.initialScale.x * 1.8,y:object.userData.initialScale.y * 1.8,z:object.userData.initialScale.z * 1.8,
-            ease: "back.out(1.8)"
-        });
-        gsap.to(object.rotation, {
-            duration: duration,
-            z:object.userData.initialRotation.z + (Math.PI / 4) ,
-            ease: "back.out(1.8)"
-            ,
- onComplete: () => { object.userData.expanded = true;
-                expandedObjects.push(object)
-            },          
-        });
-     } else if (object.name.includes ("Keyboard")) {
-         gsap.to(object.scale, {
-            duration: duration,
-            x:object.userData.initialScale.x * 1.5,y:object.userData.initialScale.y * 1.5,z:object.userData.initialScale.z * 1.5,
-            ease: "back.out(1.8)"
-         
-
-        });
-        gsap.to(object.rotation, {
-            duration: duration,
-            z:object.userData.initialRotation.z + (Math.PI / 4) ,
-            ease: "back.out(1.8)",
- onComplete: () => { object.userData.expanded = true;
-                expandedObjects.push(object)
-            },         
-        });
-     } else if (object.name.includes ("monitor")) {
-         gsap.to(object.scale, {
-            duration: duration,
-            x:object.userData.initialScale.x * 1.5,y:object.userData.initialScale.y * 1.5,z:object.userData.initialScale.z * 1.5,
-            ease: "back.out(1.8)",
- onComplete: () => { object.userData.expanded = true;
-                expandedObjects.push(object)
-            },        });
-     }    
-}
-
-
-
-function endHoverAnimation ( object ) {
-    if ( ! object ) { return;}
-    if ( !object.userData.expanded )return;
-    object.userData.expanded = false;
-    if ( object.name.includes ( "Controller" ) ) {
-        gsap.to(object.rotation, {
-           duration: duration * 2,
-           x: object.userData.initialRotation.x ,
-           ease: "back.out(1.8)",
-           onComplete: () => {object.userData.shrinked = true;},
-        });
-        gsap.to(object.scale, {
-            duration: duration,
-            x:object.userData.initialScale.x ,y:object.userData.initialScale.y ,z:object.userData.initialScale.z ,
-            ease: "back.out(1.8)"
-        });
-        gsap.to(object.position, {
-            duration: duration * 2,
-            y: object.userData.initialPosition.y ,
-            ease: "back.out(1.8)",
-           onComplete: () => {object.userData.shrinked = true;},
-        });   
-
-    } else if ( object.name.includes ( "switch" ) ) {
-        gsap.to(object.scale, {
-            duration: duration,
-            x:object.userData.initialScale.x ,y:object.userData.initialScale.y ,z:object.userData.initialScale.z ,
-            ease: "back.out(1.8)",
-            onComplete: () => {object.userData.shrinked = true;},
-        });
-    } else if ( object.name.includes ( "Bayern" )) {
-        gsap.to(object.scale, {
-            duration: duration,
-            x:object.userData.initialScale.x ,y:object.userData.initialScale.y ,z:object.userData.initialScale.z ,
-           onComplete: () => {object.userData.shrinked = true;},
-        });
-            gsap.to(object.position, {
-            duration: duration * 2,
-            z: object.userData.initialPosition.z ,
-            ease: "back.out(1.8)",
-           onComplete: () => {object.userData.shrinked = true;},
-        });   
-    } else if ( object.name.includes ( "NLP" ) ) {
-        gsap.to(object.scale, {
-        duration: duration,
-            x:object.userData.initialScale.x ,y:object.userData.initialScale.y ,z:object.userData.initialScale.z ,
-         ease: "back.out(1.8)",
-           onComplete: () => {object.userData.shrinked = true;},
-        });
-        gsap.to(object.children[0].rotation, {
-            duration: duration * 3,
-            y: object.userData.initialRotation.y,
-            ease: "power3.out",
-           onComplete: () => {object.userData.shrinked = true;},
-        });
-    
-    } else if (object.name.includes( "phone" )) {
-        gsap.to(object.scale, {
-        duration: duration,
-            x:object.userData.initialScale.x ,y:object.userData.initialScale.y ,z:object.userData.initialScale.z ,
-         ease: "back.out(1.8)"
-        });
-        gsap.to(object.rotation, {
-        duration: duration,
-            x:object.userData.initialRotation.x ,y: object.userData.initialRotation.y ,z:object.userData.initialRotation.z ,
-         ease: "bounce.out(1.8)",
-           onComplete: () => {object.userData.shrinked = true;},
-        });
-        object.children[0].material.color.set(0)
-    } else if (object.name.includes ("Keyboard")) {
-         gsap.to(object.scale, {
-            duration: duration,
-            x:object.userData.initialScale.x,y:object.userData.initialScale.y ,z:object.userData.initialScale.z ,
-            ease: "back.out(1.8)"
-        });
-        gsap.to(object.rotation, {
-        duration: duration,
-            x:object.userData.initialRotation.x ,y: object.userData.initialRotation.y ,z:object.userData.initialRotation.z ,
-         ease: "bounce.out(1.8)",
-           onComplete: () => {object.userData.shrinked = true;},
-        });
-    } else if (object.name.includes ("monitor")) {
-         gsap.to(object.scale, {
-            duration: duration,
-            x:object.userData.initialScale.x ,y:object.userData.initialScale.y,z:object.userData.initialScale.z ,
-            ease: "back.out(1.8)",
-           onComplete: () => {object.userData.shrinked = true;},
-        });
-        object.children[0].material.color.set(0)
-     }
-
- 
 }
 
 let switchButton;
-function startClickAnimation (object) {
-    if (!object) return;
-    console.log(object)
-    if (object.name.includes ( 'switch' ) ){
-        switchButton = object.children[0];
-        gsap.to(switchButton.rotation, {
-            duration: duration,
-            x:  Math.PI / 16,
-            ease: "back.out(1.8)"
-         });
-    } else if (object.name.includes ("monitor")) {
-        object.children[0].material.color.set(0xFF5BCF);
-        // object.children[0].material.emissive.set(0xFF5BCF)
-    }else if (object.name.includes ("phone")) {
-        object.children[0].material.color.set(0xFF5BCF);
-        // object.children[0].material.emissive.set(0xFF5BCF)
 
-     }
 
-}
 
-function endClickAnimation (object) {
-    if (!object) {
-        return;
-    }
-    if (object.name.includes ( 'switch' ) ){
-        switchButton = object.children[0];
-        gsap.to(switchButton.rotation, {
-            duration: duration ,
-            x: -Math.PI / 16,
-            ease: "back.out(1.8)",
-         });
-    } else if (object.name.includes ("monitor")) {
-        object.children[0].material.color.set(0x000000);
-    }else if (object.name.includes ("phone")) {
-        object.children[0].material.color.set(0x000000);
-     }
-}
 let intro_button;
+
+
+
 function setupButtons () {
     
     document.querySelectorAll( ".exit" )
@@ -416,30 +235,22 @@ function setupButtons () {
     document.querySelector ("button.help").addEventListener ("click", () => {
         if (openedModal == modals.help) {
             hideModal(modals.help)
-            endClickAnimation(raycastObjectsDict.help)
-            endHoverAnimation(raycastObjectsDict.help)
+            close(objects.help)
             clickedObject = null;
         }else {
-            while( expandedObjects.length ) {
-
-                (pop = expandedObjects.pop());
-                if (pop != clickedObject) {
-                    endHoverAnimation(pop)
-                }
-            }
+            closeAllExcept(objects.help)
             if (openedModal) {
                 hideModal(openedModal)
-                endClickAnimation(clickedObject)
             }
-                openedModal = modals.help;
-                showModal (openedModal);
-                clickedObject = raycastObjects.find(object => object.name.includes("monitor"))
-                startHoverAnimation(clickedObject)
-                startClickAnimation(clickedObject)
+            openedModal = modals.help;
+            showModal (openedModal);
+            clickedObject = objects.help;
+            startHoverAnimation(clickedObject)
+            startClickAnimation(clickedObject)
         }
     });
     document.querySelector ("button.theme").addEventListener ("click", () => {
-        changeTheme();
+        // changeTheme();
     });
 
 
@@ -447,8 +258,8 @@ function setupButtons () {
 
 function setupTouch () {
     
-    window.addEventListener( "pointermove", onPointer );
-    window.addEventListener ( "pointerdown", onPointer);
+    window.addEventListener( "pointermove", onHover );
+    window.addEventListener ( "pointerdown", onHover);
     window.addEventListener( "pointerup", onClick );
     
 }
@@ -457,8 +268,6 @@ function setupAudio () {
     sounds.day.loop = true;
     sounds.night.loop = true;
 }
-
-
 
 function onWindowResize () {
     if (openedModal) {
@@ -478,7 +287,86 @@ function onWindowResize () {
     }
 }
 
-function onPointer( event ) {
+function hoverAnimation(object) {
+
+    object.userData.big = false;
+    object.userData.small = false;
+    const shrink = !(object.userData.hover || object.userData.clicked);
+    // shrink object to initial state
+    if (shrink) {
+        duration = 1;
+        durationPos = 1;
+        durationRot = 1;
+        durationSca = 1;
+        scaleX = 1;
+        scaleY = 1;
+        scaleZ = 1;
+        rotateX = 0;
+        rotateY = 0;
+        rotateZ = 0;
+        positionX = 0;
+        positionY = 0;
+        positionZ = 0;
+    } 
+    // expand object to 
+    else {
+        scaleX = object.userData.newScale.x;
+        scaleY = object.userData.newScale.y;
+        scaleZ = object.userData.newScale.z;
+        rotateX = object.userData.newRotation.x;
+        rotateY = object.userData.newRotation.y;
+        rotateZ = object.userData.newRotation.z;
+        positionX = object.userData.newPosition.x;
+        positionY = object.userData.newPosition.y;
+        positionZ = object.userData.newPosition.z;
+    } 
+    gsap.to(object.scale, {
+        duration: object.userData.duration,
+        x: object.userData.initialScale.x * scaleX,
+        y: object.userData.initialScale.y * scaleY,
+        z: object.userData.initialScale.z * scaleZ,
+        ease: object.userData.ease,
+    });
+    gsap.to(object.rotation, {
+        duration: object.userData.duration,
+        x: object.userData.initialRotation.x + rotateX,
+        y: object.userData.initialRotation.y + rotateY,
+        z: object.userData.initialRotation.z + rotateZ,
+        ease: object.userData.ease,
+
+    });
+    gsap.to(object.position, {
+        duration: object.userData.duration,
+        x: object.userData.initialPosition.x + positionX,
+        y: object.userData.initialPosition.y + positionY,
+        z: object.userData.initialPosition.z + positionZ,
+        ease: object.userData.ease,
+        onComplete: () => {
+
+            //hover animation
+            if (shrink) {
+                // expand again
+                if (object.userData.clicked || object.userData.hover) {
+                    hoverAnimation(object);
+                } else {
+                    object.userData.small = true;
+                }
+            } else {
+                // shrink again
+                if (!object.userData.clicked && !object.userData.hover) {
+                    hoverAnimation(object);
+                } else {
+                    object.userData.big = true;
+                }
+            }
+
+            // click animation
+           
+        }
+    });
+}
+
+function onHover( event ) {
     
     pointer.x = ( event.clientX / canvas.clientWidth ) * 2 - 1;
     pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
@@ -487,76 +375,212 @@ function onPointer( event ) {
     if ( scene.children.length < 7  ) {
         return;
     }
-    
     intersects = raycaster.intersectObjects( raycastObjects );
-    intersectRayObject = intersects.length ? intersects[0].object : null;
-    if ( intersectRayObject  && intersectRayObject.userData.shrinked ) {
-        document.body.style.cursor = "pointer";
-        startHoverAnimation(intersectRayObject);            
-                   
-    } else if (intersectRayObject )  {
-        document.body.style.cursor = "pointer";
-    }
-    else {
-        document.body.style.cursor = "default"; 
-    } 
-    while ( expandedObjects.length) {
-            pop = expandedObjects.pop() 
-            if (pop != clickedObject) {
-                endHoverAnimation(pop)
+    intersect = intersects.length ? intersects[0].object : null;
+    
+    if (last_intersect != intersect) {
+
+        // shrink last intersect
+        if (last_intersect) {
+            if (!last_intersect.userData.clicked) {
+                last_intersect.userData.hover = false;
+                if (last_intersect.userData.big) {
+                    hoverAnimation(last_intersect);
+                } 
             }
-        } 
+        }
+
+        //expand new intersect
+        if (intersect) {
+            document.body.style.cursor = "pointer";
+            intersect.userData.hover = true;
+            if (intersect.userData.small) {
+                hoverAnimation(intersect);
+            } 
+        } else {
+            document.body.style.cursor = "default";
+        }
+        
+        last_intersect = intersect
+    }
+}
+
+function handleModalOf (object) {
+    let modal;
+    console.log(object)
+        if (object == objects.help) {
+            modal = modals.help
+        }
+    //         modal = modals.help
+    //         break;
+    //     case objects.contact:
+    //         modal = modals.contact
+    //         break;
+    //     case objects.games:
+    //         modal = modals.games
+    //         break
+    //     case objects.nlp:
+    //         modal = modals.nlp
+    //         break
+    //     case objects.portfolio:
+    //         modal = modals.portfolio
+    //         break
+    //     case objects.about:
+    //         modal = modals.about
+    // }
+    if (object.userData.clicked) {
+        modal.style.display = "flex";
+    } else {
+        modal.style.display = "none";
+    }
+    onWindowResize();  
 }
 
 function onClick () {
-    if ( intersectRayObject )  {
-        if (intersectRayObject.name.includes ( "switch" ) ) {
-            changeTheme();
-        } else if ( intersectRayObject != clickedObject ) {
-            endHoverAnimation(clickedObject)
-            clickedObject = intersectRayObject;
-            hideModal (openedModal);
-            
-            if ( clickedObject.name.includes ("Bayern") ) {
-                openedModal = modals.about;
-            } else if ( clickedObject.name.includes ( "Controller" ) ) {
-                openedModal = modals.games;
-            } else if ( clickedObject.name.includes ( "NLP" ) ) {
-                openedModal = modals.nlp;
-            } else if ( clickedObject.name.includes ( "phone" ) ) {
-                openedModal = modals.contact;
-            } else if ( clickedObject.name.includes ( "Keyboard" ) ) {
-                openedModal = modals.portfolio;
-            } else if ( clickedObject.name.includes ( "monitor" ) ) {
-                openedModal = modals.help;
-            } 
-            startClickAnimation(clickedObject)
-            showModal (openedModal );
-            
-        } else {
-            hideModal ( openedModal );
-            endClickAnimation(clickedObject)
-            endHoverAnimation(clickedObject)
-            clickedObject = null;
-        }
-    } 
-}
-function changeTheme() {
-    if (lighton) {        
-        lighton = false;
-        renderer.toneMappingExposure = Math.pow(2, exposureLow);
-        scene.background = background_colors.night; 
-        handleMusic ();
-        startClickAnimation(intersectRayObject);
-    } else {
-        lighton = true;
-        renderer.toneMappingExposure = Math.pow(2,exposureHigh);
-        scene.background = background_colors.day;
-        handleMusic();
-        endClickAnimation(intersectRayObject)
-        endHoverAnimation(intersectRayObject)
+    if (intersect) {
+        handleClick(intersect);
     }
 }
+
+function clickAnimation (object) {
+    object.userData.closed = false;
+    object.userData.opened = false;
+    if (object.userData.clicked) {
+        if (object.children.length){
+            gsap.to (object.children[0].material.color, {
+                duration: object.children[0].userData.duration,
+                r: object.children[0].userData.newColor.r,
+                g: object.children[0].userData.newColor.g,
+                b: object.children[0].userData.newColor.b,
+                ease: ease,
+            });
+            gsap.to (object.children[0].rotation, {
+                duration: object.children[0].userData.duration,
+                x: object.children[0].userData.initialRotation.x + object.children[0].userData.newRotation.x ,
+                y: object.children[0].userData.initialRotation.y + object.children[0].userData.newRotation.y ,
+                z: object.children[0].userData.initialRotation.z + object.children[0].userData.newRotation.z ,
+                ease: ease,
+                onComplete: () => {
+                    if (!object.userData.clicked) {
+                        clickAnimation (object)
+                    }
+                    else {
+                        object.userData.opened = true;
+                         if (object.name.includes("switch")) {
+                            // changeTheme(object)
+                        }
+                    }
+                }
+            })
+        }
+    } 
+    else {
+         if (object.children.length){
+            gsap.to (object.children[0].material.color, {
+                r: object.children[0].userData.initialColor.r,
+                g: object.children[0].userData.initialColor.g,
+                b: object.children[0].userData.initialColor.b,
+            });
+            gsap.to (object.children[0].rotation, {
+                 duration: durationRot,
+                x: object.children[0].userData.initialRotation.x,
+                y: object.children[0].userData.initialRotation.y,
+                z: object.children[0].userData.initialRotation.z,
+                ease: ease,
+                onComplete: () => {
+                    if (object.userData.clicked) {
+                        clickAnimation (object)
+                    }
+                    else {
+                        object.userData.closed = true;
+                        if (object.name.includes("switch")) {
+                            // changeTheme(object)
+                        }
+                    }
+                }
+            })
+        }
+    }
+}
+
+function handleClick(newClick) {
+
+    if (newClick.name.includes("switch")) {
+        if (newClick.userData.clicked) {
+            newClick.userData.clicked = false;
+            newClick.userData.hover = false;
+            if (newClick.userData.big) {
+                hoverAnimation (newClick);
+            }
+            if (newClick.userData.opened) {
+                clickAnimation (newClick)
+            }
+        } else {
+            newClick.userData.clicked = true;
+            newClick.userData.hover = true;
+            if (newClick.userData.small) {
+                hoverAnimation (newClick);
+            }
+            if (newClick.userData.closed) {
+                clickAnimation (newClick)
+            }
+        }
+    }
+    // new object clicked
+    if (open != newClick) {
+        if ( open ) {
+            open.userData.clicked = false;
+            open.userData.hover = false;
+            // handleModalOf(open);
+            if (open.userData.big) {
+                hoverAnimation (open);
+            }
+            if (open.userData.opened) {
+                clickAnimation (open)
+            }
+            open = null;
+        }
+        if (newClick)  {
+            newClick.userData.clicked = true;
+            newClick.userData.hover = true;
+            if (newClick.userData.small) {
+                hoverAnimation (newClick);
+            }
+            if (newClick.userData.closed) {
+                clickAnimation (newClick)
+            }
+            open = newClick;
+        } 
+    } 
+    // close this click object
+    else {
+        if (newClick) {
+            newClick.userData.clicked = false;
+            newClick.userData.hover = false; // really?
+            if (newClick.userData.big) {
+                hoverAnimation (newClick);
+            }
+            if (newClick.userData.opened) {
+                clickAnimation (newClick)
+            }
+            // handleModalOf (newClick)
+            open = null;
+        }
+    }
+}
+
+// function changeTheme(object) {
+//     console.log(object)
+//     if (!object.userData.clicked) {        
+//         renderer.toneMappingExposure = Math.pow(2, exposureLow);
+//         scene.background = background_colors.night; 
+//         handleMusic ();
+//     } else {
+//         renderer.toneMappingExposure = Math.pow(2,exposureHigh);
+//         scene.background = background_colors.day;
+//         handleMusic();
+//     }
+// }
 
 function handleMusic () {
     backgroundMusic.pause();
@@ -565,26 +589,6 @@ function handleMusic () {
 }
     
 
-
-function showModal ( modal ) {
-    if (modal) {
-        openedModal = modal;
-        modal.style.display = "flex";
-        onWindowResize();    
-        // onPointer ("pointermove");
-    }
-
-}; 
-
-function hideModal ( modal ) {
-    if (modal) {
-        openedModal = null;
-     
-        modal.style.display = "none";
-        onWindowResize();
-        // onPointer ("pointermove");
-    }
-}
 
  function main () {
     setupAudio ();

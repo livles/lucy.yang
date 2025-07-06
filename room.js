@@ -629,7 +629,7 @@ function changeTheme(object) {
 
 function handleMusic () {
     backgroundMusic.pause();
-    backgroundMusic = lighton ? sounds.day : sounds.night;
+    backgroundMusic = objects.switchButton.userData.clicked ? sounds.night : sounds.day;
     if (!mute) backgroundMusic.play();
 }
     

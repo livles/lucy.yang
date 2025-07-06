@@ -62,7 +62,7 @@ function setupScene() {
     document.body.appendChild(renderer.domElement);
     
     camera = new THREE.PerspectiveCamera(10,window.innerWidth / window.innerHeight,0.1,1000);
-    camera.position.set(-12  , 12, 12);
+    camera.position.set(-25  , 25, 25);
     
     scene = new THREE.Scene();
     scene.castShadow = true;
@@ -74,7 +74,7 @@ function setupScene() {
 function setupControls() {
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.maxZoom = 1;
+    controls.maxDistance = 30;
     controls.update();  
 }
 

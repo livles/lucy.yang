@@ -547,6 +547,9 @@ function clickAnimation (object) {
 
 function handleClick(newClick) {
     console.log(newClick)
+    if (!newClick) {
+        return
+    }
     if (newClick.name.includes("switch")) {
         if (newClick.userData.clicked) {
             newClick.userData.clicked = false;

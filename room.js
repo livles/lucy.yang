@@ -74,6 +74,7 @@ function setupScene() {
 function setupControls() {
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
+    controls.maxZoom = 1;
     controls.update();  
 }
 

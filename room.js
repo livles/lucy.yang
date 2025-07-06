@@ -1,9 +1,9 @@
-// import * as THREE from 'https://cdn.skypack.dev/three@0.129.0/build/three.module.js';
-// import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js';
-// import {OrbitControls} from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js';
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import * as THREE from 'https://cdn.skypack.dev/three@0.129.0/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/loaders/GLTFLoader.js';
+import {OrbitControls} from 'https://cdn.skypack.dev/three@0.129.0/examples/jsm/controls/OrbitControls.js';
+// import * as THREE from 'three';
+// import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+// import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { gsap } from "gsap"
 const canvas = document.getElementById("experience-canvas");
 const renderer = new THREE.WebGLRenderer({canvas: canvas,alpha:false, antialias: true});
@@ -18,14 +18,16 @@ let clickedObject = null, mute = false;
 const raycastObjects = [];
 const pink = 0xFF5BCF;
 let last_intersect = null;
-let modals; modals ={
+let modals; 
+modals ={
     about:  document.querySelector(".modal.about"),
     games:  document.querySelector(".modal.games"),
     nlp:    document.querySelector(".modal.nlp"),
     contact: document.querySelector(".modal.contact"),
     help: document.querySelector(".modal.help"),
-    portfolio: document.querySelector(".modal.portfolio")
+    portfolio: document.querySelector(".modal.portfolio"),
 };
+console.log(modals)
 let duration,durationPos,durationRot,durationSca,rotateX,rotateY,rotateZ,scaleX,scaleY,scaleZ,positionX,positionY,positionZ,ease;
 let open = null
 
@@ -91,11 +93,11 @@ function setupLight() {
     topLight.position.set(0,5,0);
     scene.add(topLight);    
     
-    const hemisphereLight = new THREE.HemisphereLight(0x004040,0x400000,2);
+    const hemisphereLight = new THREE.HemisphereLight(0x404040,0x400000,2);
     hemisphereLight.position.set(3,0,3);
     scene.add(hemisphereLight);
     
-    const ambientLight = new THREE.AmbientLight(0x808070,2);
+    const ambientLight = new THREE.AmbientLight(0xffffff,2);
     scene.add(ambientLight);
 }
 
@@ -189,7 +191,9 @@ async function load3DModel() {
         contact: raycastObjects.find(object=> object.name.includes("phone")),
         portfolio: raycastObjects.find(object=> object.name.includes("Keyboard")),
         switchButton: raycastObjects.find(object=> object.name.includes("switch")),
+        about: raycastObjects.find(object=> object.name.includes("Bayern")),
     }
+    console.log(objects)
     setupButtons();
     intro_button.textContent = "Enter Room";
     console.log(raycastObjects)
@@ -202,7 +206,6 @@ function animate (){
     controls.update();
 }
 
-let switchButton;
 
 
 
@@ -281,7 +284,6 @@ function onWindowResize () {
 }
 
 function hoverAnimation(object) {
-
     object.userData.big = false;
     object.userData.small = false;
     const shrink = !(object.userData.hover || object.userData.clicked);
@@ -303,6 +305,7 @@ function hoverAnimation(object) {
     } 
     // expand object to 
     else {
+        sounds.hover.cloneNode().play();
         scaleX = object.userData.newScale.x;
         scaleY = object.userData.newScale.y;
         scaleZ = object.userData.newScale.z;
@@ -400,37 +403,38 @@ function onHover( event ) {
 
 function handleModalOf (object) {
     let modal;
-    console.log(object)
+    if (object) {
+
         if (object == objects.help) {
             modal = modals.help
         }
-    //         modal = modals.help
-    //         break;
-    //     case objects.contact:
-    //         modal = modals.contact
-    //         break;
-    //     case objects.games:
-    //         modal = modals.games
-    //         break
-    //     case objects.nlp:
-    //         modal = modals.nlp
-    //         break
-    //     case objects.portfolio:
-    //         modal = modals.portfolio
-    //         break
-    //     case objects.about:
-    //         modal = modals.about
-    // }
-    if (object.userData.clicked) {
-        modal.style.display = "flex";
-    } else {
-        modal.style.display = "none";
+        else if (object == objects.about) {
+            modal = modals.about;
+        }
+        else if (object == objects.contact) {
+            modal = modals.contact;
+        }
+        else if (object == objects.games) {
+            modal = modals.games;
+        }
+        else if (object == objects.nlp) {
+            modal = modals.nlp;
+        }
+        else if (object == objects.portfolio) {
+            modal = modals.portfolio;
+        }
+        console.log(modal)
+        
+        if (object.userData.clicked) {
+            modal.style.display = "flex";
+        } else {
+            modal.style.display = "none";
+        }
+        onWindowResize();  
     }
-    onWindowResize();  
 }
 
 function onClick () {
-    console.log(intersect)
     if (intersect ) {
         handleClick(intersect);
     }
@@ -441,7 +445,7 @@ function clickAnimation (object) {
     object.userData.opened = false;
     if (object.name.includes("switch")) {
         changeTheme(object)
-    }
+    } 
     if (object.userData.clicked) {
         if (object.children.length){
             gsap.to (object.children[0].material.color, {
@@ -544,7 +548,7 @@ function handleClick(newClick) {
             if ( open ) {
                 open.userData.clicked = false;
                 open.userData.hover = false;
-                // handleModalOf(open);
+                handleModalOf(open);
                 if (open.userData.big) {
                     hoverAnimation (open);
                 }
@@ -556,6 +560,7 @@ function handleClick(newClick) {
             if (newClick)  {
                 newClick.userData.clicked = true;
                 newClick.userData.hover = true;
+                handleModalOf(newClick);
                 if (newClick.userData.small) {
                     hoverAnimation (newClick);
                 }
@@ -569,14 +574,14 @@ function handleClick(newClick) {
         else {
             if (newClick) {
                 newClick.userData.clicked = false;
-                newClick.userData.hover = false; // really?
+                newClick.userData.hover = false;
+                handleModalOf(newClick);
                 if (newClick.userData.big) {
                     hoverAnimation (newClick);
                 }
                 if (newClick.userData.opened) {
                     clickAnimation (newClick)
                 }
-                // handleModalOf (newClick)
                 open = null;
             }
         }

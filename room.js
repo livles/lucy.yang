@@ -219,19 +219,15 @@ function setupButtons () {
     .forEach( (button) =>
         button.addEventListener ( "click" , (e) => {
             const modal = e.target.closest ( ".modal" );
-            hideModal(modal);
-            while(expandedObjects.length) {
-                endHoverAnimation(expandedObjects.pop())
-            }
-            endHoverAnimation(clickedObject)
-            endClickAnimation(clickedObject)
-            clickedObject = null;
-
+            handleClick(objectOfModal(modal))
         })
     )
 
     intro_button = document.querySelector( ".exit.intro" );
-    intro_button.addEventListener ( "click" , () => {backgroundMusic.play()});
+    intro_button.addEventListener ( "click" , (e) => {
+        const modal = e.target.closest ( ".modal" );
+        modal.style.display = "none";
+        backgroundMusic.play()});
 
     document.querySelector (".mute").addEventListener ("click", () => {
         if (mute) {
@@ -426,8 +422,10 @@ function handleModalOf (object) {
         console.log(modal)
         
         if (object.userData.clicked) {
+            openedModal = true;
             modal.style.display = "flex";
         } else {
+            openedModal = false;
             modal.style.display = "none";
         }
         onWindowResize();  
@@ -440,6 +438,34 @@ function onClick () {
     }
 }
 
+// modals ={
+//     about:  document.querySelector(".modal.about"),
+//     games:  document.querySelector(".modal.games"),
+//     nlp:    document.querySelector(".modal.nlp"),
+//     contact: document.querySelector(".modal.contact"),
+//     help: document.querySelector(".modal.help"),
+//     portfolio: document.querySelector(".modal.portfolio"),
+// };
+function objectOfModal (modal) {
+    if (modal == modals.about) {
+        return objects.about;
+    } 
+    else if (modal == modals.games) {
+        return objects.games;
+    } 
+    if (modal == modals.nlp) {
+        return objects.nlp;
+    } 
+    if (modal == modals.contact) {
+        return objects.contact;
+    } 
+    if (modal == modals.portfolio) {
+        return objects.portfolio;
+    } 
+    if (modal == modals.help) {
+        return objects.help;
+    } 
+}
 function clickAnimation (object) {
     object.userData.closed = false;
     object.userData.opened = false;

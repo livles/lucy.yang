@@ -27,6 +27,8 @@ modals ={
     help: document.querySelector(".modal.help"),
     portfolio: document.querySelector(".modal.portfolio"),
 };
+
+let menu = document.querySelector(".menu.buttons")
 console.log(modals)
 let duration,durationPos,durationRot,durationSca,rotateX,rotateY,rotateZ,scaleX,scaleY,scaleZ,positionX,positionY,positionZ,ease;
 let open = null
@@ -62,8 +64,8 @@ function setupScene() {
     document.body.appendChild(renderer.domElement);
     
     camera = new THREE.PerspectiveCamera(10,window.innerWidth / window.innerHeight,0.1,1000);
-    camera.position.set(-25  , 25, 25);
-    
+    camera.position.set(-50  , 50, 50);
+
     scene = new THREE.Scene();
     scene.castShadow = true;
     scene.background = background_colors.day;
@@ -76,6 +78,8 @@ function setupControls() {
     controls.enableDamping = true;
     controls.maxDistance = 30;
     controls.update();  
+    controls.target.set(0, -.5, 0);   // what the camera orbits around
+
 }
 
 function setupLight() {
@@ -265,6 +269,7 @@ function setupAudio () {
 function onWindowResize () {
     if (openedModal) {
         canvas.style.width = "50%";
+        menu.style.width = "50%";
         canvas.style.overflow ="hidden";
         camera.aspect = canvas.clientWidth / window.innerHeight ;
         camera.updateProjectionMatrix();
@@ -273,6 +278,8 @@ function onWindowResize () {
     } else {
         
         canvas.style.width = "100%";
+        menu.style.width = "100%";
+
         camera.aspect = window.innerWidth/ window.innerHeight ;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth  ,window.innerHeight );
